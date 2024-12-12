@@ -2,32 +2,88 @@
   "expo": {
     "name": "Cobquecurapp-turistas-SDK52",
     "slug": "Cobquecurapp-turistas-SDK52",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.camaradeturismocobquecura.CobquecurApp",
+      "buildNumber": "2",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        },
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["cobquecurapp"]
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "package": "com.camaradeturismocobquecura.CobquecurApp",
+      "versionCode": 20,
+     "intentFilters": [
+    {
+      "action": "VIEW",
+      "autoVerify": true,
+      "data": {
+        "scheme": "https",
+        "host": "seal-app-dx4lr.ondigitalocean.app",
+        "pathPrefix": "/PromotionDetail/"
+      },
+      "category": ["BROWSABLE", "DEFAULT"]
+    },
+    {
+      "action": "VIEW",
+      "data": {
+        "scheme": "cobquecurapp",
+        "host": "PromotionDetail",
+        "pathPrefix": "/"
+      },
+      "category": ["BROWSABLE", "DEFAULT"]
+    }
+  ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAyn6WPUaMwF-7bqGw3-swrSUp4t9lC0wo"
+        }
       }
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": null
     },
     "plugins": [
+      [
+        "expo-barcode-scanner",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access camera."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ],
       "expo-router",
+      "expo-font",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/splash.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
