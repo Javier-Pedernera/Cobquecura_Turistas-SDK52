@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 1,
-    elevation: 2,
+    elevation: 1,
     height: 48,
     alignContent: 'center',
     borderWidth: 1,
@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     borderWidth: 1,
     borderColor: 'rgb(172, 208, 213)',
+    paddingHorizontal: 12,
   },
 });
 

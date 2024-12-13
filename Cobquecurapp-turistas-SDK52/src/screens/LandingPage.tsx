@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: screenWidth*0.04,
     fontFamily: 'Inter-Regular-400',
   },
 });

@@ -73,7 +73,7 @@ const RegisterScreen: React.FC = () => {
   const [modalSuccessVisible, setModalSuccessVisible] = useState(false);
   const [modalSuccessMessage, setModalSuccessMessage] = useState('');
   // console.log("terminos aceptados?",isTermsAccepted);
-  console.log("datos en el formulario",formData);
+  // console.log("datos en el formulario",formData);
   
   const fetchTerms = async () => {
     try {

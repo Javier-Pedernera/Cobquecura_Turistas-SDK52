@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, ScrollView, Modal, Dimensions } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, ScrollView, Modal, Dimensions, KeyboardAvoidingView, Keyboard,Touchable  } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppDispatch } from '../redux/store/store';
-import RNPickerSelect from 'react-native-picker-select';
 import { UserData } from '../redux/types/types';
 import { updateUserAction } from '../redux/actions/userActions';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { fetchUserCategories, fetchAllCategories } from '../redux/actions/categoryActions';
 import Checkbox from 'expo-checkbox';
 import { updateTourist } from '../services/touristService';
@@ -20,8 +18,11 @@ import ErrorModal from '../components/ErrorModal';
 import ExitoModal from '../components/ExitoModal';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Loader from '../components/Loader';
+import GenderSelect from '../components/GenderSelect';
+import CustomDatePicker from '../components/CustomDatePicker';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
 // const screenHeight = Dimensions.get('window').height;
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const ProfileScreen: React.FC = () => {
@@ -47,9 +48,8 @@ const ProfileScreen: React.FC = () => {
   useEffect(() => {
     setSelectedCategories(categories.map(cat => cat.id));
   }, [categories]);
-  console.log(user);
-
-  const [formData, setFormData] = useState({
+  // console.log(user);
+  const initialFormData = {
     user_id: user?.user_id || 0,
     first_name: user?.first_name || '',
     last_name: user?.last_name || '',
@@ -58,16 +58,13 @@ const ProfileScreen: React.FC = () => {
     city: user?.city || '',
     phone_number: user?.phone_number || '',
     gender: user?.gender || '',
+    other_gender: '',
     birth_date: user?.birth_date || '',
     image_data: `${API_URL}${user?.image_url}` || null,
     subscribed_to_newsletter: user?.subscribed_to_newsletter || false,
-  });
+  };
+  const [formData, setFormData] = useState(initialFormData);
   // console.log("datos a cambiar en el perfil y la imagen",formData, formData.image_data);
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
-  const [modalError, setModalError] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isCategoriesModalVisible, setCategoriesModalVisible] = useState(false);
   const [modalErrorVisible, setModalErrorVisible] = useState(false);
@@ -76,8 +73,18 @@ const ProfileScreen: React.FC = () => {
   const [modalSuccessMessage, setModalSuccessMessage] = useState('');
   // console.log(formData.image_data);
 
-
+  const resetFormData = () => {
+    setFormData(initialFormData);
+  };
   const handleInputChange = (field: string, value: string) => {
+
+    if (field === 'phone_number') {
+      const phoneRegex = /^[\d\s\(\)-]{0,15}$/; 
+      if (!phoneRegex.test(value)) {
+        showErrorModal('El formato del teléfono es incorrecto. Asegúrate de ingresar un número válido.');
+        return;
+      }
+    }
     if ((field === 'first_name' || field === 'last_name') && value.length > 30) {
       showErrorModal('El nombre y apellido no deben exceder los 30 caracteres.')
     return;
@@ -114,43 +121,16 @@ return;
     return `${year}-${month}-${day}`;
   };
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS !== 'ios') {
-      setShowDatePicker(false);
-    }
-    if (selectedDate) {
-      const formattedDate = formatDateToYYYYMMDD(
-        `${selectedDate.getDate()}-${selectedDate.getMonth() + 1}-${selectedDate.getFullYear()}`
-      );
-      handleInputChange('birth_date', formattedDate);
-    }
+  const handleBirthDateChange = (date: Date) => {
+    const formattedDate = formatDateToYYYYMMDD(
+      `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`
+    );
+    setSelectedDate(date);
+    handleInputChange('birth_date', formattedDate);
   };
 
-  const confirmDate = () => {
-    if (selectedDate) {
-      const formattedDate = formatDateToYYYYMMDD(
-        `${selectedDate.getDate()}-${selectedDate.getMonth() + 1}-${selectedDate.getFullYear()}`
-      );
-      handleInputChange('birth_date', formattedDate);
-    }
-    setShowDatePicker(false);
-  };
-
-  // const handleImagePick = async () => {
-  //   const result = await ImagePicker.launchImageLibraryAsync({
-  //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  //     allowsEditing: true,
-  //     aspect: [1, 1],
-  //     quality: 1,
-  //   });
-
-  //   if (!result.canceled) {
-  //     handleInputChange('image_url', result.assets[0].uri);
-  //   }
-  // };
   const handleImageCompressed = (uri: string) => {
     // console.log("imagencomprimida");
-
     handleInputChange('image_data', uri);
   };
 
@@ -159,15 +139,16 @@ return;
       showErrorModal('El nombre y apellido son de caracter obligatorio.')
     return;
   }
+  
   setIsLoading(true)
     try {
-      const { user_id, image_data, ...dataToSend } = formData;
-
+      const { user_id,other_gender, image_data, ...dataToSend } = formData;
+      if (other_gender) {
+        dataToSend.gender = other_gender;
+      }
       const validatedImageData = image_data && image_data.startsWith('http') ? null : image_data;
-      // console.log("validacion de la imagen", validatedImageData);
       
       const updatedDataToSend = { ...dataToSend, image_data: validatedImageData };
-      console.log("data a enviar",updatedDataToSend);
       
       const response = await dispatch<any>(updateUserAction({ ...updatedDataToSend, user_id }));
       // console.log("resouesta de la actualizacion del usuario", response);
@@ -183,8 +164,11 @@ return;
         // console.log("categoriesResponse",categoriesResponse);
         // console.log("categoriesResponse ver status",categoriesResponse.status);
         if (categoriesResponse.status == 200) {
-          // dispatch(fetchUserCategories())
+          if (user?.user_id) {
+            dispatch(fetchUserCategories(user.user_id));
+          }
           showSuccessModal('Datos actualizados con éxito');
+          // resetFormData();
         } else {
           showErrorModal('Error al actualizar las categorías');
          
@@ -226,7 +210,8 @@ return;
     setModalSuccessVisible(true);
   };
   const cancelEdit = () => {
-    setIsEditable(false)
+    setIsEditable(false);
+    resetFormData();
   };
   
   return (
@@ -271,14 +256,7 @@ return;
           value={formData.last_name}
           onChangeText={(value) => handleInputChange('last_name', value)}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Correo Electrónico"
-          value={formData.email}
-          onChangeText={(value) => handleInputChange('email', value)}
-          keyboardType="email-address"
-          editable={false}
-        />
+        
         <View style={styles.inputSelect}>
           <CountryPicker
             selectedCountry={formData.country}
@@ -298,58 +276,22 @@ return;
           value={formData.phone_number}
           onChangeText={(value) => handleInputChange('phone_number', value)}
         />
-        <View style={styles.datePickerContainer}>
-          {!showDatePicker && (<TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.inputdate}>
-            <Text style={styles.textDate}>
-              {formData.birth_date ? formatDateToDDMMYYYY(formData.birth_date) : 'Fecha de Nacimiento (DD-MM-YYYY)'}
-            </Text>
-          </TouchableOpacity>)}
-          {showDatePicker && (
-            <View >
-              <DateTimePicker
-                value={selectedDate || new Date()}
-                mode="date"
-                display="default"
-                onChange={handleDateChange}
-              />
-              {Platform.OS === 'ios' && (
-                <TouchableOpacity onPress={confirmDate} style={styles.confirmButton}>
-                  <Text style={styles.confirmButtonText}>Confirmar fecha</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
-        </View>
-        {Platform.OS === 'web' ? (
-          <View style={styles.selectView}>
-            <select
-              style={styles.select}
-              value={formData.gender}
-              onChange={(e) => handleInputChange('gender', e.target.value)}
-            >
-              <option value="" disabled>Seleccione Género</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Femenino">Femenino</option>
-              <option value="Otro">Otro</option>
-            </select>
+        <View style={styles.GenderSelect}>
+        <CustomDatePicker
+            selectedDate={selectedDate}
+            onDateChange={handleBirthDateChange}
+            placeholder="Fecha de Nacimiento"
+          />
           </View>
-        ) : (
-          <View >
-            <RNPickerSelect
-              onValueChange={(value: any) => handleInputChange('gender', value)}
-              value={formData.gender}
-              items={[
-                { label: 'Masculino', value: 'Masculino' },
-                { label: 'Femenino', value: 'Femenino' },
-                { label: 'Otro', value: 'Otro' },
-              ]}
-              placeholder={{ label: 'Seleccione Género', value: '' }}
-              style={pickerSelectStyles}
-              useNativeAndroidPickerStyle={false}
+        <View style={styles.GenderSelect}>
+            <GenderSelect
+              selectedGender={formData.gender}
+              otherGender={formData.other_gender}
+              onGenderChange={(value) => handleInputChange('gender', value)}
+              onOtherGenderChange={(value) => handleInputChange('other_gender', value)}
             />
           </View>
-
-        )}</>:
+</>:
         (
           <View>
             <View style={styles.textform}>
@@ -430,7 +372,6 @@ return;
           </View>
         </Modal>
       </ScrollView>
-    // </LinearGradient>
   );
 };
 
@@ -452,13 +393,14 @@ const pickerSelectStyles = StyleSheet.create({
     minHeight: 48,
     width: Platform.OS === 'web' ? '50%' : screenWidth,
     maxWidth: Platform.OS === 'web' ? '30%' : screenWidth * 0.8,
-    borderColor: 'rgba(0, 122, 140,0.5)',
+    borderColor: 'rgb(172, 208, 213)',
     borderWidth: 1,
     borderRadius: 7,
     marginBottom: 10,
     paddingHorizontal: 15,
     backgroundColor: '#fff',
     fontSize: 16,
+    
     alignSelf: 'center',
   },
 });
@@ -470,10 +412,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     paddingBottom:50
-    // backgroundColor: '#f7f7f7',
   },
   title: {
-    fontSize: 14,
+    fontSize: screenWidth*0.4,
     fontWeight: 'bold',
     marginBottom: 20,
     color: '#007a8c',
@@ -483,18 +424,19 @@ const styles = StyleSheet.create({
     flexDirection:'row',
     alignItems:'center',
     width:'100%',
+    marginBottom: 5,
     // justifyContent:'space-between',
     textAlign:'left'
   },
   textName:{
-    fontSize: 14,
+    fontSize: screenWidth*0.036,
     color: 'rgba(0, 122, 140,0.8)',
     minWidth:'30%',
     maxWidth:'30%'
   },
   textValue: {
     maxWidth:'70%',
-    fontSize: 16,
+    fontSize: screenWidth*0.04,
     marginVertical: 5,
     padding: 5,
     color: 'rgba(0, 122, 140,1)',
@@ -508,16 +450,16 @@ const styles = StyleSheet.create({
     borderRadius:25,
     backgroundColor:'rgb(232, 232, 232)',
     top:110,
-    right:120,
-    height:37,
-    width:37,
+    left:screenWidth*0.56,
+    height:screenWidth*0.1,
+    width:screenWidth*0.1,
     borderColor: 'rgba(0, 122, 140,0.2)',
     borderWidth: 1,
   },
   inputSelect: {
     height: 48,
     width: '90%',
-    borderColor: 'rgba(0, 122, 140,0.5)',
+    borderColor: 'rgb(172, 208, 213)',
     borderWidth: 1,
     borderRadius: 8,
     marginBottom: 10,
@@ -526,18 +468,31 @@ const styles = StyleSheet.create({
     minHeight:48,
     backgroundColor: '#fff',
     fontSize: 16,
+    shadowColor: '#007a8c',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  GenderSelect:{
+    width: '90%',
   },
   input: {
     height: 35,
     width: '90%',
-    borderColor: 'rgba(0, 122, 140,0.5)',
+    borderColor: 'rgb(172, 208, 213)',
     borderWidth: 1,
     borderRadius: 8,
     marginBottom: 10,
     paddingHorizontal: 15,
     backgroundColor: '#fff',
     fontSize: 16,
-    minHeight:48
+    minHeight:48,
+    shadowColor: '#007a8c',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
   },
   image: {
     width: 120,

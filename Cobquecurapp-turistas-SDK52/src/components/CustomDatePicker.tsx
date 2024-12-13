@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Dimensions } from 'react-native';
 import Modal from 'react-native-modal';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Ionicons } from '@expo/vector-icons';
 
 interface CustomDatePickerProps {
   selectedDate: Date | undefined;
@@ -34,6 +35,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ selectedDate, onDat
         <Text style={selectedDate ? styles.textDate: styles.textDateplaceholder}>
           {selectedDate ? selectedDate.toLocaleDateString() : placeholder || 'Select Date'}
         </Text>
+        <Ionicons name="calendar" size={20} color="#007a8c" style={styles.icon} />
       </TouchableOpacity>
 
       {showDatePicker && (
@@ -75,17 +77,25 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#fff',
     height:48,
-    justifyContent:'center'
+    display:'flex',
+    justifyContent:'center',
+    flexDirection: 'row',
+    alignItems: 'center', 
   },
   textDate: {
     color: '#000',
     marginLeft:5,
     fontSize: screenWidth*0.04,
+    flex: 1,
   },
   textDateplaceholder:{
     marginLeft:5,
     fontSize: screenWidth*0.04,
     color: '#adadad',
+    flex: 1, 
+  },
+  icon: {
+    marginRight: 10,
   },
   modalPickerContent: {
     backgroundColor: 'white',

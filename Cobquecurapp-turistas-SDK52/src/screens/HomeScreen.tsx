@@ -196,9 +196,14 @@ const HomeScreen = () => {
         </View>
       </View>
 
-      {touristPoints.length ?
+      {touristPoints.length > 0 ?
         <View style={styles.lowerSection}>
-          <Carousel
+          
+           {/* 
+           Este carrusel es para la version en uso de react reanimated del sdk51 
+           en sdk52 rompe y hay que usar la version canario
+
+           <Carousel
             loop
             width={screenWidth}
             height={screenWidth / 2}
@@ -216,12 +221,33 @@ const HomeScreen = () => {
             panGestureHandlerProps={{
               activeOffsetX: [-10, 10],
             }}
+          />*/}
+          <Carousel
+            loop
+            width={screenWidth}
+            height={screenWidth / 2}
+            autoPlay={true}
+            autoPlayInterval={5000}
+            data={touristPoints}
+            scrollAnimationDuration={2000}
+            mode="parallax"
+            modeConfig={{
+              parallaxScrollingScale: 0.8,
+              parallaxScrollingOffset: 50,
+            }}
+            renderItem={renderItem}
+            style={styles.carousel}
+            
+            // panGestureHandlerProps={{
+            //   activeOffsetX: [-10, 10],
+            // }}
           />
         </View> : <View style={styles.lowerSection}>
           {/* <ActivityIndicator size="large" color="#acd0d5" /> */}
           <Text style={styles.textNotPoints}>No hay puntos turisticos cargados aún</Text>
         </View>
       }
+      
       {/* Modal para aceptar los términos y condiciones */}
       {currentTerms && 
       <View style={styles.Terms}>

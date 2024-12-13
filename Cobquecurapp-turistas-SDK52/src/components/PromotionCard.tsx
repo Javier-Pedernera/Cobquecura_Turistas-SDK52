@@ -1,19 +1,17 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
-import Carousel from 'react-native-reanimated-carousel';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Animated } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Promotion, ImagePromotion as PromotionImage } from '../redux/types/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../redux/store/store';
 import { addFavoriteAction, removeFavoriteAction } from '../redux/actions/userActions';
 import { getMemoizedFavorites } from '../redux/selectors/userSelectors';
-import * as Animatable from 'react-native-animatable';
-import type { View as AnimatableView } from 'react-native-animatable';
 import { formatDateToDDMMYYYY } from '../utils/formatDate';
 import { Image } from 'expo-image'; 
+import { Promotion } from '../redux/types/types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
 interface PromotionCardProps {
   promotion: Promotion;
   index: number;
@@ -24,38 +22,32 @@ const PromotionCard: React.FC<PromotionCardProps> = ({ promotion, index, handleP
   const dispatch: AppDispatch = useDispatch();
   const userFavorites = useSelector(getMemoizedFavorites);
   const [loadingImg, setLoadingImg] = useState(false);
-  const heartRefs = useRef<Animatable.View[]>([]);
+  const [scale] = useState(new Animated.Value(1));
   const isFavorite = userFavorites.includes(promotion.promotion_id);
-  
-  // console.log("pormocion en card", promotion);
+
   const handleImageLoadStart = () => setLoadingImg(true);
   const handleImageLoadEnd = () => setLoadingImg(false);
-
-  // const renderItem = ({ item }: { item: PromotionImage }) => (
-  //   <View style={styles.carouselItem}>
-
-  //     <Image
-  //       source={{ uri: item.image_path }}
-  //       style={styles.carouselImage}
-  //       onLoadStart={handleImageLoadStart}
-  //       onLoadEnd={handleImageLoadEnd}
-  //     />
-  //   </View>
-  // );
 
   const handleFavoritePress = useCallback(() => {
     if (isFavorite) {
       dispatch(removeFavoriteAction(promotion.promotion_id));
     } else {
       dispatch(addFavoriteAction(promotion));
-      animateHeart(index);
+      animateHeart();
     }
-  }, [dispatch, isFavorite, promotion, index]);
+  }, [dispatch, isFavorite, promotion]);
 
-  const animateHeart = (index: number) => {
-    if (heartRefs.current[index]?.rubberBand) {
-      heartRefs.current[index].rubberBand(1000);
-    }
+  const animateHeart = () => {
+    Animated.sequence([
+      Animated.spring(scale, {
+        toValue: 1.35,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   return (
@@ -65,48 +57,48 @@ const PromotionCard: React.FC<PromotionCardProps> = ({ promotion, index, handleP
       onPress={() => handlePress(promotion)}
     >
       <View style={styles.carouselItem}>
-        {promotion?.images?.length?
-        <Image
-          source={{ uri: `${API_URL}${promotion.images[0].image_path}` }}
-          style={styles.carouselImage}
-          onLoadStart={handleImageLoadStart}
-          onLoadEnd={handleImageLoadEnd}
-      /> : 
-        <Image
-          source={require('../../assets/noimage.png')}
-          style={styles.carouselNoImage}
-          onLoadStart={handleImageLoadStart}
-          onLoadEnd={handleImageLoadEnd}
-      />
+        {promotion?.images?.length ?
+          <Image
+            source={{ uri: `${API_URL}${promotion.images[0].image_path}` }}
+            style={styles.carouselImage}
+            onLoadStart={handleImageLoadStart}
+            onLoadEnd={handleImageLoadEnd}
+          /> :
+          <Image
+            source={require('../../assets/noimage.png')}
+            style={styles.carouselNoImage}
+            onLoadStart={handleImageLoadStart}
+            onLoadEnd={handleImageLoadEnd}
+          />
         }
       </View>
       <View style={styles.promotionContent}>
         <View style={styles.discountContainerText}>
           <Text style={styles.promotionTitle}>{promotion.title}</Text>
-          <Text style={styles.branchtitle}>{promotion.branch_name?promotion.branch_name:''}</Text>
+          <Text style={styles.branchtitle}>{promotion.branch_name ? promotion.branch_name : ''}</Text>
           <Text style={styles.promotionDates}>
             Desde: {formatDateToDDMMYYYY(promotion.start_date)}
           </Text>
           <Text style={styles.promotionDates}>
-            Hasta: {formatDateToDDMMYYYY(promotion.expiration_date) }
+            Hasta: {formatDateToDDMMYYYY(promotion.expiration_date)}
           </Text>
           <Text style={styles.promotionDates}>
-            Disponibles: {promotion.available_quantity? promotion.available_quantity: 'Sin límite'}
+            Disponibles: {promotion.available_quantity ? promotion.available_quantity : 'Sin límite'}
           </Text>
         </View>
         <View style={styles.discountContainer}>
-        <View style={styles.discountContainerimage}>
-          <Image
-             source={require('../../assets/starDisc.png')}
-             style={styles.discountImage}
-           />
-          <Text style={styles.discountText}>{promotion.discount_percentage}%</Text>
-          <Text style={styles.discountText2}>OFF</Text>
-      </View>
+          <View style={styles.discountContainerimage}>
+            <Image
+              source={require('../../assets/starDisc.png')}
+              style={styles.discountImage}
+            />
+            <Text style={styles.discountText}>{promotion.discount_percentage}%</Text>
+            <Text style={styles.discountText2}>OFF</Text>
+          </View>
           <View style={styles.starCont}>
-            <Animatable.View ref={(ref: AnimatableView | null) => {
-              heartRefs.current[index] = ref as Animatable.View;
-            }}>
+            <Animated.View
+              style={{ transform: [{ scale }] }}
+            >
               <TouchableOpacity onPress={handleFavoritePress}>
                 <MaterialCommunityIcons
                   name={isFavorite ? 'cards-heart' : 'cards-heart-outline'}
@@ -115,7 +107,7 @@ const PromotionCard: React.FC<PromotionCardProps> = ({ promotion, index, handleP
                   style={styles.star}
                 />
               </TouchableOpacity>
-            </Animatable.View>
+            </Animated.View>
           </View>
         </View>
       </View>

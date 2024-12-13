@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Image, StyleSheet, Text, Alert } from 'react-na
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as FileSystem from 'expo-file-system';
+import { Dimensions } from 'react-native';
 
 interface ImageCompressorProps {
   onImageCompressed: (uri: string) => void;
@@ -10,7 +11,7 @@ interface ImageCompressorProps {
   isButtonDisabled?:boolean;
 }
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const ImageCompressor: React.FC<ImageCompressorProps> = ({ onImageCompressed, initialImageUri, isButtonDisabled }) => {
   const [imageUri, setImageUri] = useState<string | null>(`${initialImageUri}?timestamp=${new Date().getTime()}` || null);
 
@@ -83,9 +84,9 @@ const styles = StyleSheet.create({
     borderColor: '#acd0d5',
     borderWidth: 1,
     alignSelf: 'center',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: screenWidth*0.27,
+    height: screenWidth*0.27,
+    borderRadius: 60,
     marginTop:10
   },
 });

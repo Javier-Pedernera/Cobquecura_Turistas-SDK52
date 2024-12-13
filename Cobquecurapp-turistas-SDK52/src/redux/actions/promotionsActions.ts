@@ -9,7 +9,9 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 export const fetchPromotions = () => {
   return async (dispatch: Dispatch) => {
     try {
-      const response = await axios.get(`${API_URL}/promotions/active`);
+      // const response = await axios.get(`${API_URL}/promotions/active`);
+//hasta pasar back a produccion
+      const response = await axios.get(`${API_URL}/promotions`);
       // Filtrar promociones activas
       // console.log("respuesta en lap peticion",response.data);
       console.log(response.data)
