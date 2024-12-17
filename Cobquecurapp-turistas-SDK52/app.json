@@ -21,7 +21,10 @@
             "CFBundleURLSchemes": ["cobquecurapp"]
           }
         ]
-      }
+      },
+      "config": {
+    "googleMapsApiKey": "AIzaSyAyn6WPUaMwF-7bqGw3-swrSUp4t9lC0wo"
+                }
     },
     "android": {
       "adaptiveIcon": {

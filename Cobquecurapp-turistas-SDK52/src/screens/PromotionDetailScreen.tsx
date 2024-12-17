@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator, Modal, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator, Modal, Alert, TextInput, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Image } from 'expo-image';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -22,6 +22,7 @@ import MapSingle from '../components/MapSingle';
 import { getMemoizedSelectedPromotion } from '../redux/selectors/promotionSelectors';
 import { fetchPromotionById } from '../redux/actions/promotionsActions';
 import CryptoES from 'crypto-es';
+import { KeyboardAvoidingView } from 'react-native';
 
 type PromotionDetailScreenRouteProp = RouteProp<RootStackParamList, 'PromotionDetail'>;
 const { width } = Dimensions.get('window');
@@ -98,8 +99,8 @@ const PromotionDetailScreen: React.FC = () => {
   }, [dispatch, promotionId]);
 
   useEffect(() => {
-    console.log("Branches disponibles:", branches);
-    console.log("Promotion actual:", promotion);
+    // console.log("Branches disponibles:", branches);
+    // console.log("Promotion actual:", promotion);
     if (branches.length) {
       const branchProm = branches.find(branch => branch.branch_id == promotion?.branch_id) || null;
       setBranch(branchProm);
@@ -287,6 +288,12 @@ const encryptId = (id: any): string => {
   };
 
   return (
+    <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 20}
+  >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
@@ -354,9 +361,9 @@ const encryptId = (id: any): string => {
               }}
               renderItem={renderItem}
               style={styles.carousel}
-              panGestureHandlerProps={{
-                activeOffsetX: [-10, 10],
-              }}
+              // panGestureHandlerProps={{
+              //   activeOffsetX: [-10, 10],
+              // }}
             />
             <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
               <MaterialCommunityIcons name="close" size={24} color="#007a8c" />
@@ -456,6 +463,8 @@ const encryptId = (id: any): string => {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </TouchableWithoutFeedback>
+  </KeyboardAvoidingView>
   );
 };
 

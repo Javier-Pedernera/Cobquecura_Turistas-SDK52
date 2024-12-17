@@ -11,7 +11,7 @@ export const fetchPromotions = () => {
     try {
       // const response = await axios.get(`${API_URL}/promotions/active`);
 //hasta pasar back a produccion
-      const response = await axios.get(`${API_URL}/promotions`);
+      const response = await axios.get(`${API_URL}/v2/promotions/active`);
       // Filtrar promociones activas
       // console.log("respuesta en lap peticion",response.data);
       console.log(response.data)
@@ -28,7 +28,7 @@ export const fetchPromotions = () => {
       await new Promise(resolve => setTimeout(resolve, 3000));
 
       try {
-        const retryResponse = await axios.get(`${API_URL}/promotions`);
+        const retryResponse = await axios.get(`${API_URL}/v2/promotions/active`);
         // Filtrar promociones activas en el segundo intento
         const activePromotions = retryResponse.data.filter((promotion: any) => {
           return promotion.status.name === "active";

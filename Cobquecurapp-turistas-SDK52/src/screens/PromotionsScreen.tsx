@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, Dimensions, Image, TouchableOpacity, ScrollView, TextInput, FlatList, ActivityIndicator, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Promotion, ImagePromotion as PromotionImage, UserData } from '../redux/types/types';
@@ -34,12 +33,8 @@ const PromotionsScreen: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [selectedCategoriesName, setSelectedCategoriesName] = useState<number[]>([]);
   const [keyword, setKeyword] = useState('');
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
   const [filterByPreferences, setFilterByPreferences] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const flatListRef = useRef<FlatList<any>>(null);
@@ -48,6 +43,10 @@ const PromotionsScreen: React.FC = () => {
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [isStartDate, setIsStartDate] = useState(true); 
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   console.log("promociones",promotions);
 
   // Función para recargar las promociones
@@ -58,7 +57,8 @@ const PromotionsScreen: React.FC = () => {
     } catch (error) {
       console.error("Error al recargar promociones:", error);
     } finally {
-      setIsRefreshing(false); // Oculta el indicador
+      clearFilters()
+      setIsRefreshing(false);
     }
   };
   // Función para cargar más promociones
@@ -158,31 +158,14 @@ const PromotionsScreen: React.FC = () => {
     return `${day}-${month}-${year}`;
   }, []);
 
-  const handleStartDateChange = useCallback((event: any, date?: Date | undefined) => {
-    if (Platform.OS === 'android') {
-      setShowStartDatePicker(false);
-    }
-    if (date) {
-      setStartDate(date);
-    }
-  }, []);
 
-  const handleEndDateChange = useCallback((event: any, date?: Date | undefined) => {
-    if (Platform.OS === 'android') {
-      setShowEndDatePicker(false);
-    }
-    if (date) {
-      setEndDate(date);
-    }
-  }, []);
+  // const confirmStartDate = useCallback(() => {
+  //   setShowStartDatePicker(false);
+  // }, []);
 
-  const confirmStartDate = useCallback(() => {
-    setShowStartDatePicker(false);
-  }, []);
-
-  const confirmEndDate = useCallback(() => {
-    setShowEndDatePicker(false);
-  }, []);
+  // const confirmEndDate = useCallback(() => {
+  //   setShowEndDatePicker(false);
+  // }, []);
 
   //categorias
   const toggleCategory = useCallback((categoryId: number) => {
@@ -243,6 +226,7 @@ const PromotionsScreen: React.FC = () => {
 
   const clearFilters = useCallback(() => {
     setSelectedCategories([]);
+    setSelectedCategoriesName([]);
     setKeyword('');
     setStartDate(null);
     setEndDate(null);
@@ -261,8 +245,40 @@ const PromotionsScreen: React.FC = () => {
       });
     }
   };
-// console.log("loading y promociones",loading, promotions, displayedPromotions);
 
+
+
+// console.log("loading y promociones",loading, promotions, displayedPromotions);
+const handleStartDateChange = (_: any, selectedDate: Date | undefined) => {
+  if (Platform.OS === 'android') {
+    setShowModal(false);
+  }
+  if (selectedDate) {
+    setStartDate(selectedDate);
+  }
+};
+
+const handleEndDateChange = (_: any, selectedDate: Date | undefined) => {
+  if (selectedDate) {
+    setEndDate(selectedDate);
+  }
+  if (Platform.OS === 'android') {
+    setShowModal(false);
+  }
+};
+
+const openModal = (isStart:boolean) => {
+  setIsStartDate(isStart);
+  setShowModal(true);
+};
+
+const closeModal = () => {
+  setShowModal(false);
+};
+
+const confirmDate = () => {
+  closeModal();
+};
   const keyExtractorForPreferences = (item: Promotion, index: number) => `${item.promotion_id}-pref-${index}`;
   const keyExtractorForDisplayedPromotions = (item: Promotion, index: number) => `${item.promotion_id}-disp-${index}`;
 
@@ -294,25 +310,25 @@ const PromotionsScreen: React.FC = () => {
             <View style={styles.textFilterCont}>
               <Text style={styles.textFilter}>
                 <Text style={styles.textFilterName}>
-                  <MaterialCommunityIcons name="form-textbox-password" size={12} color="#acd0d5" /> Palabra clave:
+                  <MaterialCommunityIcons name="form-textbox-password" size={screenWidth*0.035} color="#acd0d5" /> Palabra clave:
                 </Text>
                 {keyword ? keyword : ' -'}
               </Text>
               <Text style={styles.textFilter}>
                 <Text style={styles.textFilterName}>
-                  <MaterialCommunityIcons name="calendar-arrow-right" size={12} color="#acd0d5" /> Inicio:
+                  <MaterialCommunityIcons name="calendar-arrow-right" size={screenWidth*0.035} color="#acd0d5" /> Inicio:
                 </Text>
                 {startDate ? formatDateString(startDate) : ' -'}
               </Text>
               <Text style={styles.textFilter}>
                 <Text style={styles.textFilterName}>
-                  <MaterialCommunityIcons name="calendar-arrow-left" size={12} color="#acd0d5" /> Fin:
+                  <MaterialCommunityIcons name="calendar-arrow-left" size={screenWidth*0.035} color="#acd0d5" /> Fin:
                 </Text>
                 {endDate ? formatDateString(endDate) : ' -'}
               </Text>
               <Text style={styles.textFilter}>
                 <Text style={styles.textFilterName}>
-                  <MaterialCommunityIcons name="playlist-check" size={12} color="#acd0d5" /> Categorías:
+                  <MaterialCommunityIcons name="playlist-check" size={screenWidth*0.035} color="#acd0d5" /> Categorías:
                 </Text>
                 {selectedCategoriesName.length > 0
                   ? (
@@ -333,50 +349,48 @@ const PromotionsScreen: React.FC = () => {
           <View style={styles.dottedLine} />
         </View>
         <View style={styles.filterIconsContainer}>
-          <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.iconTextFilter}>
-            <MaterialCommunityIcons name="calendar-start" size={20} color="#336749" style={styles.filterIcon} />
-            <Text style={styles.filterIconText}>Inicio</Text>
-          </TouchableOpacity>
-          {showStartDatePicker && (
-            <View>
-              <DateTimePicker
-                value={startDate || new Date()}
-                mode="date"
-                display="spinner"
-                onChange={handleStartDateChange}
-              />
-              {Platform.OS === 'ios' && (
-                <TouchableOpacity onPress={confirmStartDate} style={styles.confirmButton}>
-                  <Text style={styles.confirmButtonText}>Confirmar fecha de inicio</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+
+
+        <TouchableOpacity onPress={() => openModal(true)} style={styles.iconTextFilter}>
+        <MaterialCommunityIcons name="calendar-start" size={screenWidth*0.06} color="#336749" style={styles.filterIcon} />
+        <Text style={styles.filterIconText}>Inicio</Text>
+      </TouchableOpacity>
+
+      {/* Botón de fecha de fin */}
+      <TouchableOpacity onPress={() => openModal(false)} style={styles.iconTextFilter}>
+        <MaterialCommunityIcons name="calendar-end" size={screenWidth*0.06} color="#336749" style={styles.filterIcon} />
+        <Text style={styles.filterIconText}>Fin</Text>
+      </TouchableOpacity>
+
+      {/* Modal para seleccionar la fecha */}
+      <Modal isVisible={showModal} 
+      onBackdropPress={closeModal} 
+      onBackButtonPress={closeModal}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      >
+        <View style={Platform.OS == "ios"? styles.modalContentDate:null}>
+          <DateTimePicker
+            value={isStartDate ? (startDate ?? new Date()) : (endDate ?? new Date())}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={isStartDate ? handleStartDateChange : handleEndDateChange}
+            minimumDate={!isStartDate && startDate ?startDate:undefined }
+            maximumDate={isStartDate && endDate ? endDate : undefined }
+          />
+          {Platform.OS === 'ios' && (
+            <TouchableOpacity onPress={confirmDate} style={styles.confirmButton}>
+              <Text style={styles.confirmButtonText}>Confirmar fecha</Text>
+            </TouchableOpacity>
           )}
-          <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={styles.iconTextFilter}>
-            <MaterialCommunityIcons name="calendar-end" size={20} color="#336749" style={styles.filterIcon} />
-            <Text style={styles.filterIconText}>Fin</Text>
-          </TouchableOpacity>
-          {showEndDatePicker && (
-            <View>
-              <DateTimePicker
-                value={endDate || new Date()}
-                mode="date"
-                display="spinner"
-                onChange={handleEndDateChange}
-              />
-              {Platform.OS === 'ios' && (
-                <TouchableOpacity onPress={confirmEndDate} style={styles.confirmButton}>
-                  <Text style={styles.confirmButtonText}>Confirmar fecha de fin</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
+        </View>
+      </Modal>
           <TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.iconTextFilter}>
-            <MaterialCommunityIcons name="format-list-checks" size={20} color="#336749" style={styles.filterIcon} />
+            <MaterialCommunityIcons name="format-list-checks" size={screenWidth*0.06} color="#336749" style={styles.filterIcon} />
             <Text style={styles.filterIconText}>Categorías</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconTextFilter} onPress={clearFilters}>
-            <MaterialCommunityIcons name="filter-remove-outline" size={20} color="#336749" style={styles.filterIcon} />
+            <MaterialCommunityIcons name="filter-remove-outline" size={screenWidth*0.06} color="#336749" style={styles.filterIcon} />
             <Text style={styles.filterIconText}>Limpiar</Text>
           </TouchableOpacity>
         </View>
@@ -462,9 +476,9 @@ const PromotionsScreen: React.FC = () => {
             <TouchableOpacity style={styles.filteraplyButton} onPress={applyFilters}>
               <Text style={styles.filterButtonText}>Aplicar categorías</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
+            {/* <TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
               <Text style={styles.filterButtonText}>Cerrar</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </Modal>
       </View>
@@ -494,11 +508,11 @@ const styles = StyleSheet.create({
     left:10
   },
   textFilter:{
-    fontSize:12,
+    fontSize:screenWidth*0.03,
     color:'rgba(0, 122, 140,0.8)'
     },
     textFilterName:{
-      fontSize:12,
+      fontSize:screenWidth*0.03,
       fontWeight:'500',
       color:'rgba(0, 122, 140,0.9)',
     },
@@ -508,7 +522,7 @@ const styles = StyleSheet.create({
       flexDirection:'row',
       position:'absolute',
       left:50,
-      bottom:-25,
+      bottom:-28,
       textAlign:'center',
       fontSize:12,
       fontWeight:'500',
@@ -597,7 +611,7 @@ const styles = StyleSheet.create({
     alignSelf:'center',
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 10,
+    marginTop: screenWidth*0.01,
     marginBottom: 10,
   },
   iconContainer: {
@@ -607,17 +621,22 @@ const styles = StyleSheet.create({
     padding:10
   },
   iconText: {
-    fontSize: 12,
+    fontSize:screenWidth*0.03,
     color: '#007a8c',
   },
   filterIcon: {
+    width:screenWidth*0.1,
+    height:screenWidth*0.1,
+    justifyContent:'center',
     alignItems: 'center',
+    alignContent:'center',
     backgroundColor:'rgb(172, 208, 213)',
     borderRadius:25,
     padding:7
   },
   iconTextFilter:{
-    width:'25%',
+    
+    width:screenWidth*0.22,
     alignItems: 'center',
   },
   filterIconText: {
@@ -640,7 +659,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   misPrefe: {
-    // maxWidth: screenWidth*0.7,
     marginLeft:10
   },
   checkbox: {
@@ -673,7 +691,7 @@ const styles = StyleSheet.create({
     marginTop:0
   },
   inputLarge: {
-        height: Platform.OS === 'ios'? 'auto': 30,
+        height: Platform.OS === 'ios'? 35: 35,
         alignSelf: 'center',
         width: '90%',
         backgroundColor: '#fff',
@@ -715,60 +733,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 15,
   },
-  promotionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#007a8c',
-  },
-  promotionDates: {
-    marginTop: 10,
-    fontSize: 14,
-    color: '#888',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(49, 121, 187,0.5)',
-    marginHorizontal: 15,
-  },
-  carouselItem: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  carouselImage: {
-    width: screenWidth,
-    height: '100%',
-    borderRadius: 10,
-  },
-  carousel: {
-    alignSelf: 'center',
-  },
-  discountContainerText: {
-    width: '80%',
-
-  },
-  discountContainer: {
-    // height:'50%',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-evenly',
-    alignContent: 'center',
-    alignItems: 'center',
-    width: '20%',
-  },
-  discountContText: {
-    backgroundColor: '#FF6347',
-    width: '85%',
-    borderRadius: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 8,
-    textAlign: 'center'
-  },
-  discountText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-
-  },
   modal: {
     justifyContent: 'flex-end',
     margin: 0,
@@ -778,6 +742,11 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+  },
+  modalContentDate:{
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 10,
+    borderRadius: 20,
   },
   closeButton: {
     width: '60%',
@@ -797,56 +766,16 @@ const styles = StyleSheet.create({
   containerDate: {
     padding: 20,
   },
-  inputdate: {
-    alignSelf: 'center',
-    width: '80%',
-    padding: 10,
-    borderRadius: 8,
-    borderColor: 'rgb(172, 208, 213)',
-    borderWidth: 1,
-    marginBottom: 10,
-    backgroundColor: '#fff',
-  },
-  textDate: {
-    fontSize: 16,
-  },
   confirmButton: {
     marginTop: 10,
     padding: 10,
-    backgroundColor: '#64C9ED',
+    backgroundColor: '#007a8c',
     borderRadius: 8,
     alignItems: 'center',
   },
   confirmButtonText: {
     color: '#fff',
     fontSize: 16,
-  },
-  loaderContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: 300,
-  },
-  loader: {
-    justifyContent: 'flex-start',
-    alignContent: 'flex-start',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
-  },
-  starCont: {
-    marginTop: 20,
-    zIndex: 10,
-  },
-  star: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 0.5,
-    elevation: 1,
   },
   otherPromotionsbtn:{
     width: screenWidth*0.9,
@@ -858,8 +787,8 @@ const styles = StyleSheet.create({
   },
   otherPromotionsTitle: {
     width: screenWidth*0.5,
-    paddingLeft:10,
-    fontSize: 17,
+    paddingLeft:15,
+    fontSize:screenWidth*0.045,
     fontWeight: 'bold',
    
     color: 'rgb(0, 122, 140)',
@@ -874,7 +803,7 @@ const styles = StyleSheet.create({
     width: screenWidth*0.5,
     paddingRight:10,
     textAlign:'right',
-    fontSize: 12,
+    fontSize:screenWidth*0.04,
     fontWeight: 'bold',
     marginVertical: 20,
     color: '#007a8c',
@@ -883,7 +812,7 @@ const styles = StyleSheet.create({
     width: screenWidth*0.7,
     paddingRight:10,
     textAlign:'right',
-    fontSize: 12,
+    fontSize:screenWidth*0.04,
     fontWeight: 'bold',
     marginVertical: 20,
     color: '#007a8c',

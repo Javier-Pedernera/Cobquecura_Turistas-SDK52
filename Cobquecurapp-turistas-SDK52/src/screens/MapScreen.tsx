@@ -98,6 +98,8 @@ const MapScreen: React.FC = () => {
   };
 
   const handleRoutePress = (latitude: number, longitude: number) => {
+    console.log("presiono como llegar ios", latitude, longitude);
+    
     setDestination({ latitude, longitude });
     setRoute(true)
     setSelectedBranch(null);
@@ -203,11 +205,11 @@ const MapScreen: React.FC = () => {
               {/* <MaterialCommunityIcons name="store-marker-outline" size={30} color="#007a8c" /> */}
               <CustomMarker />
               {Platform.OS === 'ios' && (
-                <Callout style={route ? styles.calloutContainerHide : styles.calloutContainerIos} tooltip>
+                <Callout style={route ? styles.calloutContainerHide : styles.calloutContainerIos} tooltip={false}>
                   <View style={styles.callout}>
                     <View style={styles.calloutImageContainer}>
                       <Image
-                        source={{ uri: `${API_URL}${branch.image_url}` }}
+                        source={branch?.image_url ? { uri: `${API_URL}${branch.image_url}` }: require('../../assets/noimage.png')}
                         style={styles.calloutImage}
                       />
                     </View>
@@ -217,7 +219,7 @@ const MapScreen: React.FC = () => {
                       {/* Aqui debo agregar las estrellas  */}
                       {renderStars(3.5)}
                     </View>
-                    <Text style={styles.calloutDescription}>{branch.description}</Text>
+                    {/* <Text style={styles.calloutDescription}>{branch.description}</Text> */}
                     <Text style={styles.calloutDescription}>{branch.address}</Text>
                     <TouchableOpacity
                       style={styles.calloutButton}
@@ -243,7 +245,7 @@ const MapScreen: React.FC = () => {
               {/* <MaterialCommunityIcons name="map-marker-star-outline" size={40} color="#36a062" /> */}
               <TouristCustomMarker/>
               {Platform.OS === 'ios' && (
-                <Callout style={route ? styles.calloutContainerHide : styles.calloutContainerIos} tooltip>
+                <Callout style={route ? styles.calloutContainerHide : styles.calloutContainerIos} >
                   <View style={styles.callout}>
                     <View style={styles.calloutImageContainer}>
                     <Image
@@ -387,9 +389,12 @@ const styles = StyleSheet.create({
   },
   calloutButton: {
     backgroundColor: '#007a8c',
+    height:42,
+    justifyContent:'center',
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 5,
+    zIndex: 1,
   },
   calloutButtonText: {
     color: '#fff',
