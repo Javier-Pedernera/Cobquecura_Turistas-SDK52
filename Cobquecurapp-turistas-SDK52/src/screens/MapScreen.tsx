@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getMemoizedTouristPoints } from '../redux/selectors/touristPointSelectors';
 import { fetchTouristPoints } from '../redux/actions/touristPointActions';
 import { AppDispatch } from '../redux/store/store';
-import { Svg,Circle, Path } from 'react-native-svg';
+import { Svg,Circle, Path, Defs, Mask, G } from 'react-native-svg';
 
 const CustomMarker = () => (
   <Svg
@@ -30,21 +30,32 @@ const CustomMarker = () => (
 );
 const TouristCustomMarker = () => (
   <Svg
-    width={45} // Ajusta el tamaño del marcador
-    height={45} // Ajusta el tamaño del marcador
-    viewBox="0 0 1540 1925"
+    viewBox="0 0 500 670"
+    width={40}
+    height={40}
   >
-    {/* Círculo */}
-    <Circle cx="762.5" cy="828.4" r="101.9" fill="#0bc9e2" />
-    {/* Primera ruta */}
+    <Defs>
+      <Mask id="IconifyId193df337c999539023">
+        <Path fill="#fff" d="M0 0h26v26H0z" />
+        <G fill="#000" fillRule="evenodd" clipRule="evenodd">
+          <Path d="M9.172 8.232L8.762 9.5H7.5A2.5 2.5 0 0 0 5 12v6a2.5 2.5 0 0 0 2.5 2.5h11A2.5 2.5 0 0 0 21 18v-6a2.5 2.5 0 0 0-2.5-2.5h-1.263l-.409-1.268a2.5 2.5 0 0 0-2.38-1.732h-2.897a2.5 2.5 0 0 0-2.38 1.732M7.5 10.5h1.99l.633-1.96a1.5 1.5 0 0 1 1.428-1.04h2.898a1.5 1.5 0 0 1 1.427 1.04l.633 1.96H18.5A1.5 1.5 0 0 1 20 12v6a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 6 18v-6a1.5 1.5 0 0 1 1.5-1.5" />
+          <Path d="M10 14.5a3 3 0 1 0 6 0a3 3 0 0 0-6 0m5 0a2 2 0 1 1-4 0a2 2 0 0 1 4 0" />
+        </G>
+      </Mask>
+    </Defs>
+    <G fill="none" transform="matrix(17.998825, 0, 0, 18.195911, 10.059265, 7.497118)">
+      <Circle
+        cx="13"
+        cy="13"
+        r="13"
+        mask="url(#IconifyId193df337c999539023)"
+        fill="rgb(0, 118, 135)"
+      />
+    </G>
     <Path
-      d="M1050.2,671.6v341.4H474.8V671.6h133.2c6.8,0.2,12.7-3.7,15.7-9.7l38.8-83.1h199.7l38.8,83.1c3,6,8.6,9.4,15.3,9.7h133.9Zm-152.1,156.8c0-74.8-60.8-135.6-135.6-135.6s-135.6,60.8-135.6,135.6,60.8,135.6,135.6,135.6,135.6-60.8,135.6-135.6Z"
-      fill="#0bc9e2"
-    />
-    {/* Segunda ruta */}
-    <Path
-      d="M762.5,250c315,0,571.2,256.2,571.2,571.2,0,256.7-157.6,505.7-289.9,669.3-121.8,150.8-245.1,258.9-281.3,289.5-36.2-30.6-159.1-138.3-280.9-289C349.2,1326.9,191.3,1077.8,191.3,820.9,191.3,505.9,447.5,250,762.5,250Zm321.4,779.8V654.7c0-9.3-7.5-16.9-16.9-16.9H927.2l-38.8-83.1c-2.8-5.9-8.7-9.7-15.3-9.7H651.9c-6.5,0-12.5,3.8-15.3,9.7l-38.8,83.1H458c-9.3,0-16.9,7.5-16.9,16.9v375.1c0,9.3,7.5,16.9,16.9,16.9h609.1c9.3,0,16.8-7.6,16.8-16.9Z"
-      fill="#0bc9e2"
+      d="M 135.794 424.035 C 135.794 424.035 182.817 466.545 205.507 530.214 C 223.909 581.851 230.49 665.136 240.841 644.379 C 263.24 599.464 270.365 552.661 300.932 512.527 C 321.396 485.657 367.667 439.408 367.667 439.408"
+      stroke="transparent"
+      fill="rgb(0, 118, 135)"
     />
   </Svg>
 );
@@ -56,7 +67,7 @@ const initialRegion = {
 };
 
 const GOOGLE_MAPS_APIKEY = process.env.EXPO_PUBLIC_API_KEYGOOGLE;
-const screenHeight = Dimensions.get('window').height;
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const MapScreen: React.FC = () => {
@@ -98,8 +109,6 @@ const MapScreen: React.FC = () => {
   };
 
   const handleRoutePress = (latitude: number, longitude: number) => {
-    console.log("presiono como llegar ios", latitude, longitude);
-    
     setDestination({ latitude, longitude });
     setRoute(true)
     setSelectedBranch(null);
@@ -205,11 +214,11 @@ const MapScreen: React.FC = () => {
               {/* <MaterialCommunityIcons name="store-marker-outline" size={30} color="#007a8c" /> */}
               <CustomMarker />
               {Platform.OS === 'ios' && (
-                <Callout style={route ? styles.calloutContainerHide : styles.calloutContainerIos} tooltip={false}>
+                <Callout style={route ? styles.calloutContainerHide : styles.calloutContainerIos} tooltip>
                   <View style={styles.callout}>
                     <View style={styles.calloutImageContainer}>
                       <Image
-                        source={branch?.image_url ? { uri: `${API_URL}${branch.image_url}` }: require('../../assets/noimage.png')}
+                        source={{ uri: `${API_URL}${branch.image_url}` }}
                         style={styles.calloutImage}
                       />
                     </View>
@@ -219,7 +228,7 @@ const MapScreen: React.FC = () => {
                       {/* Aqui debo agregar las estrellas  */}
                       {renderStars(3.5)}
                     </View>
-                    {/* <Text style={styles.calloutDescription}>{branch.description}</Text> */}
+                    <Text style={styles.calloutDescription}>{branch.description}</Text>
                     <Text style={styles.calloutDescription}>{branch.address}</Text>
                     <TouchableOpacity
                       style={styles.calloutButton}
@@ -245,7 +254,7 @@ const MapScreen: React.FC = () => {
               {/* <MaterialCommunityIcons name="map-marker-star-outline" size={40} color="#36a062" /> */}
               <TouristCustomMarker/>
               {Platform.OS === 'ios' && (
-                <Callout style={route ? styles.calloutContainerHide : styles.calloutContainerIos} >
+                <Callout style={route ? styles.calloutContainerHide : styles.calloutContainerIos} tooltip>
                   <View style={styles.callout}>
                     <View style={styles.calloutImageContainer}>
                     <Image
@@ -310,7 +319,7 @@ const MapScreen: React.FC = () => {
         </MapView>
         {routeLoading && (
           <View style={styles.routeLoaderContainer}>
-            <ActivityIndicator size="large" color="#007a8c" />
+            <ActivityIndicator size="large" color="#00bdd6" />
           </View>
         )}
         {selectedBranch && Platform.OS === 'android' && (
@@ -318,6 +327,7 @@ const MapScreen: React.FC = () => {
             <CustomCallout
               branch={selectedBranch}
               handleRoutePress={() => handleRoutePress(selectedBranch.latitude ?? 0, selectedBranch.longitude ?? 0)}
+              isTouristPoint={false}
             />
           </View>
         )}
@@ -389,12 +399,9 @@ const styles = StyleSheet.create({
   },
   calloutButton: {
     backgroundColor: '#007a8c',
-    height:42,
-    justifyContent:'center',
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 5,
-    zIndex: 1,
   },
   calloutButtonText: {
     color: '#fff',
@@ -465,10 +472,14 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   routeLoaderContainer: {
+    backgroundColor:'rgba(61, 61, 61,0.6)',
+    height:screenHeight,
+    width:screenWidth,
+    justifyContent:'center',
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -25 }, { translateY: -25 }],
+    // top: '50%',
+    // left: '50%',
+    // transform: [{ translateX: -25 }, { translateY: -25 }],
     zIndex: 3,
   },
   backButton: {

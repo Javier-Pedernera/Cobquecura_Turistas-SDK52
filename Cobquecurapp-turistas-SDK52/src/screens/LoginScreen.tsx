@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, Image, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Icon from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { userLogIn } from '../redux/actions/userActions';
+import { loginAsGuestAction, userLogIn } from '../redux/actions/userActions';
 import Loader from '../components/Loader';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { fetchAllCategories } from '../redux/actions/categoryActions';
-import { AppDispatch } from '../redux/store/store';
+import { AppDispatch, RootState } from '../redux/store/store';
 import { Dimensions } from 'react-native';
 import Constants from 'expo-constants'; 
 import ErrorModal from '../components/ErrorModal';
@@ -35,7 +35,7 @@ const LoginScreen: React.FC = () => {
   const [modalErrorMessage, setModalErrorMessage] = useState('');
   const [errorModalVisible, setErrorModalVisible] = useState(false);
   const [modalSuccessMessage, setModalSuccessMessage] = useState('');
-  
+  const isGuest = useSelector((state: RootState) => state.user.isGuest);
   // console.log("ruta del login",route);
   // console.log("id de la promocion",promotionId);
   // console.log("terminos actuales",currentTerms);
@@ -92,11 +92,16 @@ const LoginScreen: React.FC = () => {
       setLoading(false);
     }
   }
+  // console.log("es invitado?",isGuest);
+  
   const showErrorModal = (message: string) => {
     setModalErrorMessage(message);
     setErrorModalVisible(true);
   };
-
+  const handleGuestLogin = async() => {
+    await dispatch(loginAsGuestAction())
+    navigation.navigate('MainAppScreen');
+  };
   return (
     <LinearGradient
       colors={['#007a8c', '#f6f6f6']}
@@ -134,8 +139,14 @@ const LoginScreen: React.FC = () => {
         </TouchableOpacity>
         <Text style={styles.TextNot}>No tienes cuenta?</Text>
       </View>
+      <View>
+        
+      </View>
       <TouchableOpacity style={styles.buttonSecondary} onPress={() => navigation.navigate('Register')}>
         <Text style={styles.buttonSecondaryText}>Regístrate</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.buttonInvited} onPress={handleGuestLogin}>
+        <Text style={styles.buttonInvitedText}>Ingresar como Invitado</Text>
       </TouchableOpacity>
       <Text  style={styles.versionText} >Version {appVersion}</Text>
        {/* Modales */}
@@ -162,7 +173,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   card: {
-    backgroundColor: '#f6f6f6',
+    backgroundColor: '#f9f9f9',
     padding: 20,
     borderRadius: 25,
     width: '90%',
@@ -242,7 +253,7 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS == 'ios'? 'Inter-Bold': 'Inter-Regular-400',
   },
   buttonSecondary: {
-    backgroundColor: '#f6f6f6',
+    backgroundColor: '#f9f9f9',
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 25,
@@ -251,11 +262,39 @@ const styles = StyleSheet.create({
     minHeight:48,
     alignItems:'center',
     alignContent:'center',
-    justifyContent:'center'
+    justifyContent:'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
   buttonSecondaryText: {
     color: '#007a8c',
     fontSize: screenWidth*0.04,
+    fontWeight: '700',
+    fontFamily: Platform.OS == 'ios'? 'Inter-Bold': 'Inter-Regular-400',
+  },
+  buttonInvited:{
+    backgroundColor: '#f9f9f9',
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    marginTop: 10,
+    width: '90%',
+    minHeight:48,
+    alignItems:'center',
+    alignContent:'center',
+    justifyContent:'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  buttonInvitedText: {
+    color: '#007a8c',
+    fontSize: screenWidth*0.037,
     fontWeight: '700',
     fontFamily: Platform.OS == 'ios'? 'Inter-Bold': 'Inter-Regular-400',
   },

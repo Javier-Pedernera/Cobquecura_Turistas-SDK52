@@ -19,6 +19,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import BranchesScreen from './BranchesScreen';
 // import BranchDetails from './BranchDetails ';
 import TermsAndConditionsScreen from './TermsAndConditionsScreen';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store/store';
 
 const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
@@ -27,7 +29,10 @@ const MainTabs = () => {
   const navigation = useNavigation();
   const drawerStatus = useDrawerStatus();
   const [focusedTab, setFocusedTab] = useState<string | null>(null);
+  const isGuest = useSelector((state: RootState) => state.user.isGuest);
 
+  console.log("invitado?", isGuest);
+  
   const getIconName = (routeName: string): any => {
     switch (routeName) {
       case 'Inicio':
@@ -116,11 +121,6 @@ const MainTabs = () => {
           tabPress: () => setFocusedTab('Store'),
         }}
       />
-      {/* <Tab.Screen
-        name="BranchDetails"
-        component={BranchDetails}
-        options={{ tabBarButton: () => null, headerShown: false }}
-      /> */}
       <Tab.Screen
         name="Descuentos"
         component={PromotionsScreen}
@@ -129,14 +129,14 @@ const MainTabs = () => {
           tabPress: () => setFocusedTab('Descuentos'),
         }}
       />
-      <Tab.Screen
+      {!isGuest && <Tab.Screen
         name="Credencial"
         component={UserCredential}
         options={{ headerShown: false }}
         listeners={{
           tabPress: () => setFocusedTab('Credencial'),
         }}
-      />
+      />}
       <Tab.Screen
         name="Más"
         component={PlaceholderScreen}
@@ -148,16 +148,16 @@ const MainTabs = () => {
           },
         })}
       />
-      <Tab.Screen
+      {!isGuest && <Tab.Screen
         name="Perfil"
         component={ProfileScreen}
         options={{ tabBarButton: () => null, headerShown: false }}
-      />
-      <Tab.Screen
+      />}
+      {!isGuest && <Tab.Screen
         name="Favoritos"
         component={FavoritesScreen}
         options={{ tabBarButton: () => null, headerShown: false }}
-      />
+      />}
       <Tab.Screen
         name="Contacto"
         component={ContactComponent}
@@ -168,11 +168,11 @@ const MainTabs = () => {
         component={TouristListScreen}
         options={{ tabBarButton: () => null, headerShown: false }}
       />
-      <Tab.Screen
+      {!isGuest && <Tab.Screen
         name="Legales"
         component={TermsAndConditionsScreen}
         options={{ tabBarButton: () => null, headerShown: false }}
-      />
+      />}
       <Tab.Screen
         name="Map"
         component={MapScreen}

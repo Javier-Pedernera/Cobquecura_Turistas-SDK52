@@ -5,17 +5,49 @@ import MapViewDirections from 'react-native-maps-directions';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import CustomCallout from '../components/CustomCallout';
 import { Ionicons } from '@expo/vector-icons';
-import { Svg,Circle, Path } from 'react-native-svg';
+import { Svg,Circle, Path, Defs, Mask, G } from 'react-native-svg';
+import Loader from './Loader';
 
 const CustomMarker = () => (
   <Svg
-    width={40}
+    width={50}
     height={50}
     viewBox="0 0 100 125"
   >
     <Path
       d="M50,7.78C34,7.78,21.02,19.26,21.02,36.77c0,24.43,28.99,34.26,28.99,59.26c0-25,28.99-35.35,28.99-59.26C78.99,19.26,66.01,7.78,50,7.78zM68.68,33.5c-0.09,1.16-1.37,2.93-3.09,2.93c-0.29,0-0.44-0.05-0.85,1.17c0,0-0.06,14.22-0.06,15.21c0,0.99-0.74,1.54-1.6,1.54c-5.21,0.01-21.29,0.04-26.3,0.05c-0.85,0-1.49-0.66-1.49-1.59c0-0.94-0.02-15.21-0.02-15.21c-0.41-1.22-0.57-1.18-0.86-1.18c-1.72,0-3.01-1.76-3.1-2.92l-0.04-0.55l0.04,0c0,0-0.01-0.08,0-0.13c0.04-0.11,0.12-0.19,0.21-0.26l4.22-10.91c0.07-0.21,0.26-0.35,0.47-0.35l27.58,0c0.21,0,0.4,0.14,0.47,0.34l4.28,10.96c0.06,0.05,0.11,0.11,0.14,0.19c0.02,0.06,0.01,0.16,0.01,0.16l0.04,0l-0.05,0.55zM60.35,36.43c-1.13,0-2.01-0.76-2.54-1.61c-0.54,0.85-1.47,1.61-2.6,1.61c-1.14,0-2.07-0.76-2.6-1.61c-0.54,0.85-1.47,1.61-2.61,1.61c-1.13,0-2.06-0.76-2.6-1.61c-0.53,0.85-1.46,1.61-2.59,1.61s-2.05-0.76-2.59-1.61c-0.53,0.85-1.44,1.61-2.57,1.61c-1,0-1.93-0.59-2.34-1.31l0,10.11l25.38,0l0-10.11c-0.41,0.72-1.34,1.31-2.34,1.31zM62.47,32.95l-3.08-10.84l-2.95,0l1.85,10.84l4.18,0zM51.36,22.11l-2.83,0l-0.61,10.84l4.03,0l-0.59-10.84zM43.58,22.11l-2.97,0l-3.05,10.84l4.13,0l1.89-10.84z"
       fill="#007a8c"
+    />
+  </Svg>
+);
+const TouristMarker = () => (
+  <Svg
+    viewBox="0 0 500 670"
+    width={40}
+    height={40}
+  >
+    <Defs>
+      <Mask id="IconifyId193df337c999539023">
+        <Path fill="#fff" d="M0 0h26v26H0z" />
+        <G fill="#000" fillRule="evenodd" clipRule="evenodd">
+          <Path d="M9.172 8.232L8.762 9.5H7.5A2.5 2.5 0 0 0 5 12v6a2.5 2.5 0 0 0 2.5 2.5h11A2.5 2.5 0 0 0 21 18v-6a2.5 2.5 0 0 0-2.5-2.5h-1.263l-.409-1.268a2.5 2.5 0 0 0-2.38-1.732h-2.897a2.5 2.5 0 0 0-2.38 1.732M7.5 10.5h1.99l.633-1.96a1.5 1.5 0 0 1 1.428-1.04h2.898a1.5 1.5 0 0 1 1.427 1.04l.633 1.96H18.5A1.5 1.5 0 0 1 20 12v6a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 6 18v-6a1.5 1.5 0 0 1 1.5-1.5" />
+          <Path d="M10 14.5a3 3 0 1 0 6 0a3 3 0 0 0-6 0m5 0a2 2 0 1 1-4 0a2 2 0 0 1 4 0" />
+        </G>
+      </Mask>
+    </Defs>
+    <G fill="none" transform="matrix(17.998825, 0, 0, 18.195911, 10.059265, 7.497118)">
+      <Circle
+        cx="13"
+        cy="13"
+        r="13"
+        mask="url(#IconifyId193df337c999539023)"
+        fill="rgb(0, 118, 135)"
+      />
+    </G>
+    <Path
+      d="M 135.794 424.035 C 135.794 424.035 182.817 466.545 205.507 530.214 C 223.909 581.851 230.49 665.136 240.841 644.379 C 263.24 599.464 270.365 552.661 300.932 512.527 C 321.396 485.657 367.667 439.408 367.667 439.408"
+      stroke="transparent"
+      fill="rgb(0, 118, 135)"
     />
   </Svg>
 );
@@ -66,8 +98,8 @@ const MapSingle: React.FC<MapComponentProps> = ({
 }) => {
 
 // console.log("branch en el mapa",branch);
-// console.log("destino",destination);
-console.log("branch seleccionada en el mapa",selectedBranch);
+// console.log("punto turistico?",touristPoint);
+// console.log("branch seleccionada en el mapa",selectedBranch);
 //console.log("branch",branch);
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -115,7 +147,7 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
   return (
     <View style={styles.mapContainer}>
-      
+     
       <MapView
         style={styles.map}
         region={{
@@ -136,8 +168,7 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
             coordinate={{ latitude: branch.latitude, longitude: branch.longitude }}
             onPress={() => setSelectedBranch(branch)}
           >
-            <CustomMarker />
-            {/* <MaterialCommunityIcons name="map-marker" size={40} color="#007a8c" /> */}
+            {touristPoint ? <TouristMarker /> : <CustomMarker />}
             {Platform.OS === 'ios' && (
               <Callout style={routeSelected ? styles.calloutContainerHide : styles.calloutContainerIos} tooltip>
                 <View style={styles.callout}>
@@ -170,7 +201,6 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
         )}
         {currentPosition && (
           <Marker coordinate={currentPosition} title="Mi ubicación" pinColor="blue">
-            {/* <MaterialCommunityIcons name="map-marker-account-outline" size={24} color="black" /> */}
             <MaterialCommunityIcons name="map-marker-account" size={screenWidth * 0.1} color="#04b9d1" />
           </Marker>
         )}
@@ -204,7 +234,7 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
       )}
       {selectedBranch && !routeSelected && Platform.OS === 'android' && (
         <View style={styles.calloutContainer}>
-          <CustomCallout branch={selectedBranch} handleRoutePress={handleGetDirections} />
+          <CustomCallout branch={selectedBranch} handleRoutePress={handleGetDirections} isTouristPoint={touristPoint} />
         </View>
       )}
     </View>

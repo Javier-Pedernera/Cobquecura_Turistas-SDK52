@@ -7,10 +7,11 @@ import { Image } from 'expo-image';
 interface CustomCalloutProps {
   branch: any;
   handleRoutePress: () => void;
+  isTouristPoint:boolean;
 }
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 // `${API_URL}${branch.images[0].image_path}`
-const CustomCallout: React.FC<CustomCalloutProps> = ({ branch, handleRoutePress }) => {
+const CustomCallout: React.FC<CustomCalloutProps> = ({ branch, handleRoutePress, isTouristPoint }) => {
   // console.log("punto turistico", branch);
   const imageUrl = branch.branch_id
     ? `${API_URL}${branch.image_url}`
@@ -42,11 +43,11 @@ const CustomCallout: React.FC<CustomCalloutProps> = ({ branch, handleRoutePress 
       <View style={styles.calloutBack}>
         {Platform.OS === 'android' ? (
           <View style={styles.calloutImageAndroidCont}>
-            <Image source={imageUrl && !imageUrl.endsWith("null")? { uri:  imageUrl }: require('../../assets/noimage.png')} style={styles.calloutImage} />
+            <Image source={imageUrl && !imageUrl.endsWith("null")? { uri:  imageUrl }: require('../../assets/noimage.png')} style={styles.calloutImage} contentFit="cover" />
           </View>
         ) : (
           <View style={styles.calloutImageContainer}>
-            <Image source={imageUrl && !imageUrl.endsWith("null")? { uri:  imageUrl }: require('../../assets/noimage.png')} style={styles.calloutImage} />
+            <Image source={imageUrl && !imageUrl.endsWith("null")? { uri:  imageUrl }: require('../../assets/noimage.png')} style={styles.calloutImage} contentFit="cover"/>
           </View>
         )}
         <View style={styles.callout}>
@@ -55,7 +56,7 @@ const CustomCallout: React.FC<CustomCalloutProps> = ({ branch, handleRoutePress 
           <View style={styles.ratingContainer}>
             {/* <Text style={styles.calloutDescription}>{branch.description}</Text> */}
             <View style={styles.starsContainer}>
-              {renderStars(3.5)}
+              {renderStars(branch.average_rating)}
             </View>
           </View>
           <View style={styles.addressBttn}>
@@ -156,8 +157,7 @@ const styles = StyleSheet.create({
   },
   calloutImage: {
     width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    height: '100%'
   },
   calloutImageAndroidCont: {
     marginBottom: 15,

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, Image, TouchableOpacity, ScrollView
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Promotion, ImagePromotion as PromotionImage, UserData } from '../redux/types/types';
-import { AppDispatch } from '../redux/store/store';
+import { AppDispatch, RootState } from '../redux/store/store';
 import { fetchPromotions } from '../redux/actions/promotionsActions';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import Checkbox from 'expo-checkbox';
@@ -22,6 +22,7 @@ import PromotionCardVertical from '../components/PromotionCardVertical';
 import { RefreshControl } from 'react-native';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
+import Fontisto from '@expo/vector-icons/Fontisto';
 
 const PromotionsScreen: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -47,7 +48,11 @@ const PromotionsScreen: React.FC = () => {
   const [isStartDate, setIsStartDate] = useState(true); 
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  console.log("promociones",promotions);
+  const isGuest = useSelector((state: RootState) => state.user.isGuest);
+  const [modalAlertVisible, setModalAlertVisible] = useState(false);
+  const [modalAlertMessage, setModaAlertMessage] = useState('');
+  // console.log("promociones",promotions);
+
 
   // Función para recargar las promociones
   const handleRefresh = async () => {
@@ -282,6 +287,15 @@ const confirmDate = () => {
   const keyExtractorForPreferences = (item: Promotion, index: number) => `${item.promotion_id}-pref-${index}`;
   const keyExtractorForDisplayedPromotions = (item: Promotion, index: number) => `${item.promotion_id}-disp-${index}`;
 
+  if (isGuest) {
+    return (
+      <View style={styles.gradient}>
+        <SemicirclesOverlay />
+        <Fontisto name="shopping-sale" size={30} color="rgba(0, 122, 140,1)" style={styles.iconSale}/>
+        <Text style={styles.message}>Para aprovechar los descuentos regístrate en nuestra app.</Text>
+      </View>
+    );
+  }
   return (
     !promotions.length ?
       <View style={styles.gradient}>
@@ -402,6 +416,7 @@ const confirmDate = () => {
               {!isPreferencesHide && (
                 <View style={styles.misPrefe}>
                   <Text style={styles.titlepreferne}>Promociones según tus preferencias</Text>
+                  {loading && <Loader />}
                   <FlatList
                     horizontal
                     data={filterByPreferences}
@@ -488,6 +503,22 @@ const confirmDate = () => {
 const styles = StyleSheet.create({
   gradient: {
     flex: 1,
+  },
+  message:{
+    fontSize:screenWidth*0.045,
+    width:'85%',
+    alignSelf:'center',
+    marginTop:'5%',
+    textAlign:'center',
+    fontWeight:'700',
+    color:'rgba(0, 122, 140,0.9)'
+  },
+  iconSale:{
+    width:'85%',
+    alignSelf:'center',
+    marginTop:'60%',
+    textAlign:'center',
+    fontWeight:'700',
   },
   notProm:{
     color:'#333',

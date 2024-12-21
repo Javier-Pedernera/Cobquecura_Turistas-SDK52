@@ -2,7 +2,7 @@ import React from 'react';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../services/authService';
 import { SimpleLineIcons } from '@expo/vector-icons';
 import SemicirclesOverlaySideBar from './SemicirclesOverlaySideBar';
@@ -10,13 +10,19 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { FontAwesome } from '@expo/vector-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Platform } from 'react-native';
-import Constants from 'expo-constants'; 
+import Constants from 'expo-constants';
+import { RootState } from '../redux/store/store';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/AppNavigator';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 const appVersion = Constants.expoConfig?.version;
 const { width, height } = Dimensions.get('window');
 const Sidebar: React.FC<DrawerContentComponentProps> = (props) => {
-
+  const isGuest = useSelector((state: RootState) => state.user.isGuest);
   const dispatch = useDispatch();
+
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const handleLogout = () => {
     dispatch(logoutUser() as any);
@@ -30,14 +36,14 @@ const Sidebar: React.FC<DrawerContentComponentProps> = (props) => {
   return (
     <View style={styles.container}>
       <SemicirclesOverlaySideBar/>
-      <TouchableOpacity style={styles.option} onPress={() => navigateToScreen('Perfil')}>
+      {!isGuest&&<TouchableOpacity style={styles.option} onPress={() => navigateToScreen('Perfil')}>
         <MaterialCommunityIcons style={styles.icon} name="account-box" size={width * 0.06} color="#000" />
         <Text style={styles.optionText}>Perfil</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.option} onPress={() => navigateToScreen('Favoritos')}>
+      </TouchableOpacity>}
+      {!isGuest&&<TouchableOpacity style={styles.option} onPress={() => navigateToScreen('Favoritos')}>
         <MaterialCommunityIcons style={styles.icon} name="folder-heart-outline" size={width * 0.06} color="#000" />
         <Text style={styles.optionText}>Favoritos</Text>
-      </TouchableOpacity>
+      </TouchableOpacity>}
       <TouchableOpacity style={styles.option} onPress={() => navigateToScreen('Contacto')}>
         <MaterialCommunityIcons style={styles.icon} name="card-account-phone-outline" size={width * 0.06} color="#000" />
         <Text style={styles.optionText}>Contacto</Text>
@@ -54,10 +60,21 @@ const Sidebar: React.FC<DrawerContentComponentProps> = (props) => {
         <Ionicons name="information-circle-outline" style={styles.icon} size={width * 0.06} color="#000" />
         <Text style={styles.optionText}>Legales</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+      {!isGuest?<TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
         <SimpleLineIcons style={styles.icon} name="logout" size={width * 0.05} color="#fff" />
         <Text style={styles.optionText}>Cerrar sesión</Text>
+      </TouchableOpacity>:
+      <View>
+      <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.logoutButton}>
+      <SimpleLineIcons style={styles.icon} name="note" size={width * 0.05} color="#fff" />
+      <Text style={styles.optionText}>Regístrarse</Text>
       </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('Login',{})} style={styles.logoutButton}>
+      <SimpleLineIcons style={styles.icon} name="login" size={width * 0.05} color="#fff" />
+      <Text style={styles.optionText}>Ingresar</Text>
+      </TouchableOpacity>
+      </View>
+      }
       <View style={styles.logoLogSideCont}>
         <Image source={require('../../assets/logo.png')} style={styles.logoLogSide}/>
         <Image source={require('../../assets/logo2.png')} style={styles.logoLog2Side}/>
@@ -113,12 +130,14 @@ const styles = StyleSheet.create({
   versionText:{
     position:'absolute',
     bottom:  Platform.OS === 'ios' ? 20 : 10,
-    left: Platform.OS === 'ios' ? width *0.16: width *0.22,
+    // left: Platform.OS === 'ios' ? width *0.16: width *0.22,
     marginTop:1,
     fontSize: width *0.03,
     fontFamily: 'Inter-Regular-400',
     color: '#007a8c',
-    fontWeight:'400'
+    fontWeight:'400',
+    width:'100%',
+    textAlign:'center'
   }
 });
 

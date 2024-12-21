@@ -1,6 +1,6 @@
 import { Dispatch } from 'redux';
-import { Promotion, UserActionTypes, UserData } from '../types/types'; 
-import {  addFavorite, loginUser, logOut, removeFavorite, setFavorites, setUser } from '../reducers/userReducer';
+import { Promotion, UserData } from '../types/types'; 
+import {  addFavorite, loginAsGuest, loginUser, logOut, removeFavorite, setFavorites, setUser } from '../reducers/userReducer';
 import { loginUserAuth } from '../../services/authService';
 import { RootState } from '../store/store';
 import axios from 'axios';
@@ -47,6 +47,12 @@ export const getUserInfo = (token:string) => {
     }
   };
 };
+// Acción para habilitar el modo invitado
+export const loginAsGuestAction = () => {
+  return async(dispatch: Dispatch) => {
+    dispatch(loginAsGuest());
+  };
+};
 
 export const logOutUser = () => {
   return (dispatch: Dispatch) => {
@@ -85,7 +91,10 @@ export const fetchUserFavorites = () => {
       const state = getState();
       const token = state.user.accessToken;
       const userId = state.user.userData?.user_id;
-
+      if (state.user.isGuest) {
+        console.warn("Los usuarios invitados no tienen favoritos.");
+        return;
+      }
       if (!token || !userId) {
         throw new Error('User not authenticated');
       }
@@ -107,14 +116,17 @@ export const addFavoriteAction = (promotion: Promotion) => {
       const token = state.user.accessToken;
       const userId = state.user.userData?.user_id;
       
-      
+      // Si el usuario es invitado, no permitir agregar favoritos
+      if (state.user.isGuest) {
+        console.warn("Los usuarios invitados no pueden agregar favoritos.");
+        return;
+      }
 
       if (!token || !userId) {
         throw new Error('User not authenticated');
       }
       // console.log("al agregar a favorito", userId, promotion);
-      await axios.post(
-        `${API_URL}/favorites`,
+     const response=  await axios.post(`${API_URL}/favorites`,
         { user_id: userId, promotion_id: promotion.promotion_id },
         {
           headers: {
@@ -122,8 +134,11 @@ export const addFavoriteAction = (promotion: Promotion) => {
           },
         }
       );
+      console.log("respuesta al agregar a favoritos",response);
+      
       dispatch(addFavorite(promotion.promotion_id));
     } catch (error) {
+      console.log("error",error);
       throw error;
     }
   };

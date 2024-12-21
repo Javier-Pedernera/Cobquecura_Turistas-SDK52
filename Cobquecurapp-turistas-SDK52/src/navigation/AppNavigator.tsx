@@ -66,8 +66,9 @@ const AppNavigator = () => {
   const isAuthenticated = !!accessToken;
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList | undefined>(undefined);
   const [promotionIdFromDeepLink, setPromotionIdFromDeepLink] = useState<string | undefined>(undefined);
-
-  useEffect(() => {
+  const isGuest = useSelector((state: RootState) => state.user.isGuest);
+ 
+   useEffect(() => {
     const handleInitialDeepLink = async () => {
       const initialURL = await Linking.getInitialURL();
       // console.log("URL inicial:", initialURL);
@@ -80,7 +81,11 @@ const AppNavigator = () => {
           return;
         }
       }
-      setInitialRoute(isAuthenticated ? 'MainAppScreen' : 'Landing');
+      if (isGuest) {
+        setInitialRoute('MainAppScreen');
+      } else {
+        setInitialRoute(isAuthenticated ? 'MainAppScreen' : 'Landing');
+      }
     };
 
     handleInitialDeepLink();
@@ -98,76 +103,107 @@ const AppNavigator = () => {
 
   return (
     // <NavigationContainer linking={linking}>
-     <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
-        {!isAuthenticated ? (
-          <>
-            <Stack.Screen name="Landing" component={LandingPage} />
-            <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="Login" component={LoginScreen} initialParams={{ promotionId: promotionIdFromDeepLink }} />
-            <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-            <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-          </>
-        ) : (
-          <>
-            <Stack.Screen
-              name="MainAppScreen"
-              component={MainAppScreen}
-              options={{
-                headerShown: true,
-                header: () => <CustomHeader />
-              }}
-            />
-            <Stack.Screen
-              name="Profile"
-              component={ProfileScreen}
-              options={{
-                headerShown: false,
-                headerTitle: 'Perfil',
-                headerStyle: { backgroundColor: '#007a8c' },
-                headerTintColor: '#fff',
-              }}
-            />
-            <Stack.Screen
-              name="FavoritesScreen"
-              component={FavoritesScreen}
-              options={{
-                headerShown: false,
-                headerTitle: 'Promociones Favoritas',
-                headerStyle: { backgroundColor: '#007a8c' },
-                headerTintColor: '#fff',
-              }}
-            />
-            <Stack.Screen
-              name="TouristDetailScreen"
-              component={TouristDetailScreen}
-              options={{
-                headerShown: false,
-                headerTitle: "Detalles",
-                headerStyle: { backgroundColor: '#007a8c' },
-                headerTintColor: '#fff',
-              }}
-            />
-            <Stack.Screen
-              name="PromotionDetail"
-              component={PromotionDetailScreen}
-              options={{
-                headerShown: false,
-                headerTitle: "Detalles",
-                headerStyle: { backgroundColor: '#007a8c' },
-                headerTintColor: '#fff',
-              }} />
-              <Stack.Screen
-              name="BranchDetails"
-              component={BranchDetails}
-              options={{
-                headerShown: true,
-                header: () => <CustomHeader />
-              }}
-              />
-          </>
-        )}
-      </Stack.Navigator>
+    <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+    {!isAuthenticated && !isGuest ? (
+      <>
+        <Stack.Screen name="Landing" component={LandingPage} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} initialParams={{ promotionId: promotionIdFromDeepLink }} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+      </>
+    ) : isGuest ?(
+      <>
+      <Stack.Screen name="Login" component={LoginScreen} initialParams={{ promotionId: promotionIdFromDeepLink }} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen
+          name="MainAppScreen"
+          component={MainAppScreen}
+          options={{
+            headerShown: true,
+            header: () => <CustomHeader />
+          }}
+        />
+        <Stack.Screen
+          name="TouristDetailScreen"
+          component={TouristDetailScreen}
+          options={{
+            headerShown: false,
+            headerTitle: "Detalles",
+            headerStyle: { backgroundColor: '#007a8c' },
+            headerTintColor: '#fff',
+          }}
+        />
+         <Stack.Screen
+          name="BranchDetails"
+          component={BranchDetails}
+          options={{
+            headerShown: true,
+            header: () => <CustomHeader />
+          }}
+          />
+        </>
+    ):
+     <>
+        <Stack.Screen
+          name="MainAppScreen"
+          component={MainAppScreen}
+          options={{
+            headerShown: true,
+            header: () => <CustomHeader />
+          }}
+        />
+        <Stack.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{
+            headerShown: false,
+            headerTitle: 'Perfil',
+            headerStyle: { backgroundColor: '#007a8c' },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen
+          name="FavoritesScreen"
+          component={FavoritesScreen}
+          options={{
+            headerShown: false,
+            headerTitle: 'Promociones Favoritas',
+            headerStyle: { backgroundColor: '#007a8c' },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen
+          name="TouristDetailScreen"
+          component={TouristDetailScreen}
+          options={{
+            headerShown: false,
+            headerTitle: "Detalles",
+            headerStyle: { backgroundColor: '#007a8c' },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen
+          name="PromotionDetail"
+          component={PromotionDetailScreen}
+          options={{
+            headerShown: false,
+            headerTitle: "Detalles",
+            headerStyle: { backgroundColor: '#007a8c' },
+            headerTintColor: '#fff',
+          }} />
+          <Stack.Screen
+          name="BranchDetails"
+          component={BranchDetails}
+          options={{
+            headerShown: true,
+            header: () => <CustomHeader />
+          }}
+          />
+      </>
+    }
+  </Stack.Navigator>
     // </NavigationContainer>
   );
 };

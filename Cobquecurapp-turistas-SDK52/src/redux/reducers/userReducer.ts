@@ -6,12 +6,14 @@ export interface UserState {
   userData: UserData | null;
   accessToken: string | null;
   favorites: number[];
+  isGuest: boolean; 
 }
 
 const initialState: UserState = {
   userData: null,
   accessToken: null,
   favorites: [],
+  isGuest: false, 
 };
 
 const userSlice = createSlice({
@@ -24,11 +26,13 @@ const userSlice = createSlice({
         ...state,
         userData: user,
         accessToken: token,
+        isGuest: false,
       };
     },
     logOut: (state) => {
       state.userData = null;
       state.accessToken = null;
+      state.isGuest = false;
     },
     setUser: (state, action: PayloadAction<any>) => {
       return {
@@ -45,8 +49,14 @@ const userSlice = createSlice({
     removeFavorite: (state, action: PayloadAction<number>) => {
       state.favorites = state.favorites.filter(id => id !== action.payload);
     },
+    loginAsGuest: (state) => {
+      state.isGuest = true; // Activar modo invitado
+      state.userData = null; 
+      state.accessToken = null;
+      state.favorites = [];
+    },
   },
 });
 
-export const { loginUser, logOut, setUser,setFavorites ,addFavorite, removeFavorite } = userSlice.actions;
+export const { loginUser, logOut, setUser,setFavorites,loginAsGuest ,addFavorite, removeFavorite } = userSlice.actions;
 export default userSlice.reducer;

@@ -10,12 +10,12 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 export const fetchBranches = () => {
   return async (dispatch: Dispatch, getState: () => RootState) => {
     try {
-      const state = getState();
-      const token = state.user.accessToken;
+      // const state = getState();
+      // const token = state.user.accessToken;
 
-      if (!token) {
-        throw new Error('User not authenticated');
-      }
+      // if (!token) {
+      //   throw new Error('User not authenticated');
+      // }
       const response = await axios.get<Branch[]>(`${API_URL}/branches`);
       
       // Filtrar solo las sucursales activas (que no estén eliminadas)

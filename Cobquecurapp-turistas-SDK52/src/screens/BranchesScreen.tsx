@@ -33,7 +33,7 @@ const BranchesScreen = () => {
   const [modalErrorVisible, setModalErrorVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-// console.log("sucursales",branches);
+console.log("sucursales",branches);
 const handleRefresh = async () => {
   setIsRefreshing(true);
   try {
