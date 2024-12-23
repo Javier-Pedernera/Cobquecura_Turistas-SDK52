@@ -2,7 +2,7 @@ import { Dispatch } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { AppDispatch } from '../store/store';
 import { TouristPoint, Rating, NewRating, putRating } from '../types/types';
-import { setRatings, setRatingsError, setTouristPoints, setTouristPointsError, addRating, updateRating, deleteRating } from '../reducers/touristPointReducer';
+import { setRatings, setRatingsError, setTouristPoints, setTouristPointsError, addRating, updateRating, deleteRating, setSelectedTouristPoint } from '../reducers/touristPointReducer';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -29,6 +29,19 @@ export const fetchTouristPoints = () => {
     }
   };
 };
+
+export const fetchTouristPointById = (touristPointId: number) => {
+  return async (dispatch: AppDispatch) => {
+    try {
+      const response = await axios.get<TouristPoint>(`${API_URL}/tourist_points/${touristPointId}`);
+      // Asignar el punto turístico actualizado al estado global
+      dispatch(setSelectedTouristPoint(response.data));
+    } catch (error) {
+      dispatch(setTouristPointsError(getErrorMessage(error)));
+    }
+  };
+};
+
 export const fetchRatings = (touristPointId: number) => {
   return async (dispatch: AppDispatch) => {
     try {

@@ -150,7 +150,8 @@ export enum UserActionTypes {
     rating: number;
     tourist_id?: number;
     tourist_point_id: number;
-    
+    tourist_first_name?:string;
+    tourist_image_url?:string;
   }
   export interface NewRating {
     comment: string;

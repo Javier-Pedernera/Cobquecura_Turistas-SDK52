@@ -16,3 +16,12 @@ export const getMemoizedRatings = createSelector(
   [selectRatings],
   (ratings) => ratings.map(rating => ({ ...rating }))
 );
+
+// Selector para obtener el punto turístico seleccionado
+export const selectSelectedTouristPoint = (state: RootState) => state.touristPoints.selectedTouristPoint;
+
+// Versión memoizada
+export const getMemoizedSelectedTouristPoint = createSelector(
+  [selectSelectedTouristPoint],
+  (selectedTouristPoint) => (selectedTouristPoint ? { ...selectedTouristPoint } : null)
+);

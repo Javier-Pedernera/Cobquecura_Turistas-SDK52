@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator, FlatList, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Dimensions, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../redux/store/store';
-import { addNewRating, fetchRatings, fetchTouristPoints, updateExistingRating } from '../redux/actions/touristPointActions';
+import { addNewRating, fetchRatings, fetchTouristPointById, fetchTouristPoints, updateExistingRating } from '../redux/actions/touristPointActions';
 import { Rating, TouristPoint, UserData } from '../redux/types/types';
 import { getMemoizedUserData } from '../redux/selectors/userSelectors';
 import Loader from '../components/Loader';
@@ -10,10 +10,11 @@ import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { getMemoizedRatings } from '../redux/selectors/touristPointSelectors';
+import { getMemoizedRatings, getMemoizedSelectedTouristPoint } from '../redux/selectors/touristPointSelectors';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import MapSingle from '../components/MapSingle';
+import { clearRatingsTouristPoint, clearSelectedTouristPoint } from '../redux/reducers/touristPointReducer';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -35,16 +36,23 @@ const TouristDetailScreen: React.FC<TouristDetailScreenProps> = ({ route, naviga
   const [error, setError] = useState<string | null>(null);
   const user = useSelector(getMemoizedUserData) as UserData;
   const ratings = useSelector(getMemoizedRatings);
+  const selectedTouristPoint = useSelector(getMemoizedSelectedTouristPoint);
   const [currentPosition, setCurrentPosition] = useState<{ latitude: number, longitude: number } | null>(null);
   const [routeSelected, setRouteSelected] = useState<boolean>(false);
   const [selectedPoint, setSelectedPoint] = useState<any>(null);
   const [routeLoading, setRouteLoading] = useState(false);
   const [destination, setDestination] = useState<{ latitude: number, longitude: number } | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(`${API_URL}${touristPoint.images[0]?.image_path}` || null);
+  const isGuest = useSelector((state: RootState) => state.user.isGuest);
 //`${API_URL}${touristPoint.images[0]?.image_path}`
   // console.log("id para editar",editingRatingId);
-  // console.log("punto turistico elegido", touristPoint);
-  // console.log("todos las valoraciones",ratings);
+  // console.log("punto turistico elegido", selectedTouristPoint);
+  console.log("todos las valoraciones",ratings);
+
+  useEffect(() => {
+    // Obtener datos actualizados del punto turístico
+    dispatch(fetchTouristPointById(touristPoint.id));
+  }, [dispatch, touristPoint.id]);
 
   useEffect(() => {
     const requestLocationPermission = async () => {
@@ -68,6 +76,7 @@ const TouristDetailScreen: React.FC<TouristDetailScreenProps> = ({ route, naviga
       try {
         // console.log("hace el dispach?");
         // console.log("pt id?", touristPoint.id);
+        if(touristPoint)
         dispatch(fetchRatings(touristPoint.id));
       } catch (error) {
         setError('Failed to fetch ratings');
@@ -85,12 +94,12 @@ const TouristDetailScreen: React.FC<TouristDetailScreenProps> = ({ route, naviga
   //   setRouteLoading(true);
   // };
   const handleGetDirections = () => {
-    if (touristPoint && currentPosition) {
+    if (selectedTouristPoint && currentPosition) {
       setRouteLoading(true)
       setRouteSelected(true)
       setDestination({
-        latitude: touristPoint.latitude,
-        longitude: touristPoint.longitude,
+        latitude: selectedTouristPoint.latitude,
+        longitude: selectedTouristPoint.longitude,
       });
     }
   };
@@ -104,9 +113,12 @@ const TouristDetailScreen: React.FC<TouristDetailScreenProps> = ({ route, naviga
 
     };
     // console.log(rating);
-
-    await dispatch(addNewRating(rating, touristPoint.id));
-    await dispatch(fetchRatings(touristPoint.id))
+    if(selectedTouristPoint){
+      await dispatch(addNewRating(rating, selectedTouristPoint.id));
+      await dispatch(fetchRatings(touristPoint.id));
+      await dispatch(fetchTouristPointById(touristPoint.id));
+      await dispatch(fetchTouristPoints());
+    }
     setNewRating(0);
     setNewComment('');
     setLoadingRating(false)
@@ -121,7 +133,7 @@ const TouristDetailScreen: React.FC<TouristDetailScreenProps> = ({ route, naviga
       };
 
       await dispatch(updateExistingRating(editingRatingId, updatedRating));
-      await dispatch(fetchRatings(touristPoint.id));
+      await dispatch(fetchTouristPointById(touristPoint.id));
       await dispatch(fetchTouristPoints());
       setEditingRatingId(null);
       setNewRating(0);
@@ -155,6 +167,11 @@ const TouristDetailScreen: React.FC<TouristDetailScreenProps> = ({ route, naviga
   const handleMapPress = () => {
     setSelectedPoint(null);
   };
+  const handleBack = async() => {
+    await dispatch(clearSelectedTouristPoint())
+    await dispatch(clearRatingsTouristPoint())
+    navigation.goBack()
+  }
 
   return (
     <KeyboardAvoidingView
@@ -162,15 +179,16 @@ const TouristDetailScreen: React.FC<TouristDetailScreenProps> = ({ route, naviga
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView style={styles.container}>
+      {!selectedTouristPoint && <Loader/>}
         <View style={styles.container}>
         {selectedImage && (
             <Image source={{ uri: selectedImage }} style={styles.image} />
           )}
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <TouchableOpacity onPress={ handleBack } style={styles.backButton}>
             <MaterialIcons name="arrow-back-ios-new" size={24} color="#007a8c" />
           </TouchableOpacity>
           <View style={styles.thumbnailContainer}>
-            {touristPoint.images && touristPoint.images.length > 1 && touristPoint.images.map(image => (
+            {selectedTouristPoint && selectedTouristPoint.images && selectedTouristPoint.images.length > 1 && selectedTouristPoint.images.map(image => (
               <TouchableOpacity key={image.id} onPress={() => setSelectedImage(`${API_URL}${image?.image_path}`)}>
                 <Image source={{ uri: `${API_URL}${image?.image_path}`}} style={styles.thumbnail} />
               </TouchableOpacity>
@@ -178,22 +196,22 @@ const TouristDetailScreen: React.FC<TouristDetailScreenProps> = ({ route, naviga
             
           </View>
           <View style={styles.container2}>
-            <Text style={styles.title}>{touristPoint.title}</Text>
+            <Text style={styles.title}>{selectedTouristPoint?.title}</Text>
             {/* <Text style={styles.averageRating}>Valoracion:</Text> */}
-            <Text> {renderStarRating(touristPoint.average_rating ?? 0)}</Text>
+            <Text> {renderStarRating(selectedTouristPoint?.average_rating ?? 0)}</Text>
 
           </View>
-          <Text style={styles.description}>{touristPoint.description}</Text>
+          <Text style={styles.description}>{selectedTouristPoint?.description}</Text>
         </View>
 
 
         {/* Mapa */}
         <View style={styles.descriptiontitleMapCont}>
-          {touristPoint && touristPoint.latitude !== null && touristPoint.longitude !== null && (
+          {selectedTouristPoint && selectedTouristPoint.latitude !== null && selectedTouristPoint.longitude !== null && (
             <View style={styles.descriptiontitleMap}>
               <Text style={styles.descriptiontitleMap}>Ubicación:</Text>
               <MapSingle
-                branch={touristPoint}
+                branch={selectedTouristPoint}
                 currentPosition={currentPosition}
                 destination={destination}
                 routeSelected={routeSelected}
@@ -217,12 +235,25 @@ const TouristDetailScreen: React.FC<TouristDetailScreenProps> = ({ route, naviga
         </View>
         <View style={styles.ValorContainer} >
           <Text style={styles.valoracionesTitle}>Valoraciones:</Text>
-          {ratings.filter(rating => rating.tourist_point_id === touristPoint.id).map((rating) => (
+          {ratings && ratings.length ? ratings?.filter(rating => rating.tourist_point_id === selectedTouristPoint?.id).map((rating) => (
             <View key={rating.id} style={styles.ratingContainer}>
+              <View style={styles.userCont}>
+              {rating.tourist_image_url ? (
+                        <Image
+                          source={{ uri: `${API_URL}${rating.tourist_image_url}` }}
+                          style={styles.userImage} 
+                        />
+                      ) : (
+                        <Image source={require('../../assets/noimage.png')} style={styles.userImage} />
+                      )}
+              <Text style={styles.userName}>{rating.tourist_first_name}</Text>
+              </View>
               <Text>{renderStarRating(rating.rating)}</Text>
-
               <Text style={styles.comment}>{rating.comment}</Text>
-              {rating.tourist_id === user.user_id && (
+              
+              
+              {/* <Text style={styles.averageRating}>Valoracion:</Text> */}
+              {!isGuest&& rating.tourist_id === user?.user_id && (
                 <TouchableOpacity onPress={() => {
                   setEditingRatingId(rating.id);
                   setNewRating(rating.rating);
@@ -232,8 +263,8 @@ const TouristDetailScreen: React.FC<TouristDetailScreenProps> = ({ route, naviga
                 </TouchableOpacity>
               )}
             </View>
-          ))}
-          <View style={styles.newRatingContainer}>
+          )):<Text>No hay comentarios aún... </Text>}
+          {!isGuest&&<View style={styles.newRatingContainer}>
             <Text style={styles.valoracionesTitle}>Tu valoración:</Text>
             <View style={styles.starsContainer}>
               {[1, 2, 3, 4, 5].map((star) => (
@@ -252,7 +283,7 @@ const TouristDetailScreen: React.FC<TouristDetailScreenProps> = ({ route, naviga
             <TouchableOpacity onPress={editingRatingId === null ? handleAddRating : handleUpdateRating} style={styles.button} disabled={loadingRating}>
               {loadingRating? <Text style={styles.buttonText}>{editingRatingId === null ? 'Enviando valoración...' : 'Actualizando valoración...'}</Text>: <Text style={styles.buttonText}>{editingRatingId === null ? 'Enviar valoración' : 'Actualizar valoración'}</Text>}
             </TouchableOpacity>
-          </View>
+          </View>}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -284,7 +315,7 @@ const styles = StyleSheet.create({
   newRatingContainer: {
     marginTop: 20,
     padding: 10,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#fff',
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -358,16 +389,37 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   ratingContainer: {
-    marginBottom: 16,
-    padding: 16,
-    borderColor: '#ddd',
-    borderWidth: 1,
+    marginBottom: 15,
+    padding: 10,
     borderRadius: 8,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fff',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.5,
   },
   comment: {
     fontSize: 16,
-    marginVertical: 8,
+    marginVertical: 5,
+  },
+  userCont:{
+    display:'flex',
+    flexDirection:'row',
+    marginBottom:10,
+    justifyContent:'flex-start',
+    alignContent:'flex-end',
+    alignItems:'flex-end'
+  },
+  userName:{
+    fontSize: screenWidth*0.035,
+    color:'#333'
+  },
+  userImage:{
+    width: 30, 
+    height: 30, 
+    borderRadius: 20, 
+    marginRight: 10,
   },
   editButton: {
     color: '#007a8c',

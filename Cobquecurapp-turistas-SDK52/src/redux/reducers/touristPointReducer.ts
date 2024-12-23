@@ -3,12 +3,14 @@ import { TouristPoint, Rating } from '../types/types';
 
 interface TouristPointState {
   touristPoints: TouristPoint[];
+  selectedTouristPoint: TouristPoint | null;
   ratings: Rating[];
   error: string | null;
 }
 
 const initialState: TouristPointState = {
   touristPoints: [],
+  selectedTouristPoint: null,
   ratings: [],
   error: null,
 };
@@ -20,6 +22,16 @@ const touristPointSlice = createSlice({
     setTouristPoints: (state, action: PayloadAction<TouristPoint[]>) => {
       state.touristPoints = action.payload;
       state.error = null; 
+    },
+    setSelectedTouristPoint: (state, action: PayloadAction<TouristPoint>) => {
+      state.selectedTouristPoint = action.payload;
+      state.error = null;
+    },
+    clearSelectedTouristPoint: (state) => {
+      state.selectedTouristPoint = null;
+    },
+    clearRatingsTouristPoint: (state) => {
+      state.ratings = [];
     },
     setRatings: (state, action: PayloadAction<Rating[]>) => {
       state.ratings = action.payload;
@@ -54,6 +66,8 @@ const touristPointSlice = createSlice({
 
 export const {
   setTouristPoints,
+  setSelectedTouristPoint,
+  clearSelectedTouristPoint,
   setRatings,
   addRating,
   updateRating,
@@ -61,6 +75,7 @@ export const {
   updateTouristPoint,
   setTouristPointsError,
   setRatingsError,
+  clearRatingsTouristPoint
 } = touristPointSlice.actions;
 
 export default touristPointSlice.reducer;
